@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.authentication import authenticate
-from .models import User
-
+from .models import User,Role
 
 class UserSendEmailSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -20,3 +19,11 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("gmail yoki password xato")
         data["user"] = user
         return data
+    
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = "__all__"
+        
+
+        

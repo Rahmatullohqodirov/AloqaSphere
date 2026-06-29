@@ -1,6 +1,19 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser,BaseUserManager
 from .validations import phone_number_validation
+
+
+class Role(models.Model):
+    name = models.CharField(max_length=50,unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.name
+    class Meta:
+        db_table = "role"
+        
+        
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -31,6 +44,7 @@ class User(AbstractUser):
     address = models.CharField(max_length=50)
     email = models.EmailField(unique=True)
     is_verified = models.BooleanField(default=False)
+    role = models.ForeignKey(Role,on_delete=models.CASCADE, related_name="role")
     
     objects = CustomUserManager()
     

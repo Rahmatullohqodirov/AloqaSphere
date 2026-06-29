@@ -5,13 +5,13 @@ from django.core.mail import send_mail
 import random
 from decouple import config
 from django.conf import settings
-from rest_framework.generics import CreateAPIView,GenericAPIView
-from .serializers import UserSendEmailSerializer,LoginSerializer
+from rest_framework.generics import CreateAPIView,GenericAPIView,ListCreateAPIView,RetrieveUpdateDestroyAPIView
+from .serializers import UserSendEmailSerializer,LoginSerializer,RoleSerializer
 from django.core.cache import cache
 from rest_framework import status
-from .models import User
+from .models import User,Role
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from .permissons import RolePermissions
 class SendEmailView(CreateAPIView):
     serializer_class = UserSendEmailSerializer
     
@@ -44,6 +44,7 @@ class UserSaveView(CreateAPIView):
         input_code = request.data.get("input_code")
         cache_code = cache.get(f"otp_{input_email}")
         user_data = cache.get(f"user_data_{input_email}")
+        role = User.objects.get(name="user")
     
         if cache_code is not None:
             if int(input_code) == int(cache_code):
@@ -54,7 +55,8 @@ class UserSaveView(CreateAPIView):
                     last_name = user_data["last_name"],
                     phone_number = user_data["phone_number"],
                     address = user_data["address"],
-                    is_verified=True
+                    is_verified=True,
+                    role = role
                 )
                 
                 return Response({"msg": "user muvafaqiyatli yaratildi!"},status=status.HTTP_201_CREATED)
@@ -76,7 +78,19 @@ class LoginView(GenericAPIView):
         return Response({
             "email": str(user.email),
             "refresh": str(refresh),
-            "access": str(refresh.access_token)
+            "access": str(refresh.access_token),
+            "role": str(user.role)
         },status=status.HTTP_200_OK)
         
-                
+class RoleView(ListCreateAPIView):
+    queryset = Role.objects.all()
+    serializer_class = RoleSerializer
+    permission_classes = [RolePermissions]
+    
+class RoleObjectView(RetrieveUpdateDestroyAPIView):
+    queryset = Role.objects.all()
+    serializer_class = RoleSerializer
+    permission_classes = [RolePermissions]
+          
+    
+                    
