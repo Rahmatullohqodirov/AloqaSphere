@@ -19,8 +19,6 @@ class CustomUserManager(BaseUserManager):
         if not email:
             raise ValueError("Email kiritilishi shart!")
         email = self.normalize_email(email)
-        
-        # extra_fields ichidan tasodifan kelib qolishi mumkin bo'lgan username'ni o'chiramiz
         extra_fields.pop('username', None) 
         
         user = self.model(email=email, **extra_fields)

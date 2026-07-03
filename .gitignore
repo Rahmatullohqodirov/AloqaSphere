@@ -6,3 +6,5 @@ README.md
 main.py
 uv.lock
 configurations/__pycache__
+user/migrations
+user/__pycache__
