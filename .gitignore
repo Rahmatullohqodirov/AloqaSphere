@@ -1,0 +1,8 @@
+.vscode
+.python-version
+.venv
+pyproject.toml
+README.md
+main.py
+uv.lock
+configurations/__pycache__
