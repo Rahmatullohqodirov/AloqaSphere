@@ -12,9 +12,10 @@ from rest_framework import status
 from .models import User,Role
 from rest_framework_simplejwt.tokens import RefreshToken
 from .permissons import RolePermissions
+from rest_framework.permissions import AllowAny
 class SendEmailView(CreateAPIView):
     serializer_class = UserSendEmailSerializer
-    
+    permission_classes = [AllowAny]
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -37,36 +38,51 @@ class SendEmailView(CreateAPIView):
     
 class UserSaveView(CreateAPIView):
     queryset = User.objects.all()
-    
+    permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
-        
-        input_email = request.data.get("input_email").lower()
+        input_email = request.data.get("input_email")
         input_code = request.data.get("input_code")
+
+        if not input_email or not input_code:
+            return Response({"msg": "email yoki kod kiritilmagan"}, status=status.HTTP_400_BAD_REQUEST)
+
+        input_email = input_email.lower()
         cache_code = cache.get(f"otp_{input_email}")
         user_data = cache.get(f"user_data_{input_email}")
-        role = User.objects.get(name="user")
-    
-        if cache_code is not None:
-            if int(input_code) == int(cache_code):
-                User.objects.create_user(
-                    email=input_email,
-                    password=user_data["password"],
-                    first_name = user_data["first_name"],
-                    last_name = user_data["last_name"],
-                    phone_number = user_data["phone_number"],
-                    address = user_data["address"],
-                    is_verified=True,
-                    role = role
-                )
-                
-                return Response({"msg": "user muvafaqiyatli yaratildi!"},status=status.HTTP_201_CREATED)
-            return Response({"msg": "kodi hato"})
-        print(cache_code)
-        return Response({"msg": "kodi vaqti tugadi!"})
-    
+
+        if cache_code is None or user_data is None:
+            return Response({"msg": "kodi vaqti tugadi!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if int(input_code) != int(cache_code):
+                return Response({"msg": "kodi hato"}, status=status.HTTP_400_BAD_REQUEST)
+        except ValueError:
+            return Response({"msg": "kod noto'g'ri formatda"}, status=status.HTTP_400_BAD_REQUEST)
+
+        role = Role.objects.filter(name="operator").only("id").first()
+        if role is None:
+            return Response({"msg": "operator roli topilmadi"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        User.objects.create_user(
+            email=input_email,
+            password=user_data["password"],
+            first_name=user_data["first_name"],
+            last_name=user_data["last_name"],
+            phone_number=user_data["phone_number"],
+            address=user_data["address"],
+            is_verified=True,
+            role=role
+        )
+
+        cache.delete(f"otp_{input_email}")
+        cache.delete(f"user_data_{input_email}")
+
+        return Response({"msg": "user muvafaqiyatli yaratildi!"}, status=status.HTTP_201_CREATED)
 
 class LoginView(GenericAPIView):
     serializer_class = LoginSerializer
+    permission_classes = [AllowAny]
     
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -90,7 +106,4 @@ class RoleView(ListCreateAPIView):
 class RoleObjectView(RetrieveUpdateDestroyAPIView):
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
-    permission_classes = [RolePermissions]
-          
-    
-                    
+    permission_classes = [RolePermissions] 

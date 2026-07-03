@@ -77,6 +77,18 @@ DATABASES = {
         "PORT": config("DB_PORT")
     }
 }
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": "myproject",
+    }
+}
+
+
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -124,12 +136,7 @@ STATIC_URL = 'static/'
 
 
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': 'os.path.join(BASE_DIR, "django_cache")', # Keshni papkaga fayl qilib yozadi
-    }
-}
+
 
 SIMPLE_JWT = {
     # Access token muddati (Kalt muddatli - har bir so'rovda tekshiriladi)

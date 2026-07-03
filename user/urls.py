@@ -8,3 +8,5 @@ urlpatterns = [
     path("role/<int:pk>/",views.RoleObjectView.as_view()),
     path("role/",views.RoleView.as_view()) 
 ]
+
+

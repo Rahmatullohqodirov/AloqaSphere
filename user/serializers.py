@@ -7,6 +7,7 @@ class UserSendEmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = "__all__"
+        read_only_fields= ["role"]
         
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
