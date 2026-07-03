@@ -13,7 +13,6 @@ class Role(models.Model):
     class Meta:
         db_table = "role"
         
-        
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -53,4 +52,4 @@ class User(AbstractUser):
     class Meta:
         db_table = "user"
     def __str__(self):
-        return str(self.email)  
+        return str(self.email)
