@@ -13,14 +13,11 @@ class Role(models.Model):
     class Meta:
         db_table = "role"
         
-        
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("Email kiritilishi shart!")
         email = self.normalize_email(email)
-        
-        # extra_fields ichidan tasodifan kelib qolishi mumkin bo'lgan username'ni o'chiramiz
         extra_fields.pop('username', None) 
         
         user = self.model(email=email, **extra_fields)
@@ -55,4 +52,4 @@ class User(AbstractUser):
     class Meta:
         db_table = "user"
     def __str__(self):
-        return str(self.email)  
+        return str(self.email)

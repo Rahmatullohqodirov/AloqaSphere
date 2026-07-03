@@ -13,7 +13,6 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     
-    
     def validate(self, data):
         user = authenticate(username = data["email"], password = data["password"])
         if not user:
@@ -25,6 +24,3 @@ class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = "__all__"
-        
-
-        

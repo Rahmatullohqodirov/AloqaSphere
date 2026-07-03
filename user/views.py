@@ -106,4 +106,7 @@ class RoleView(ListCreateAPIView):
 class RoleObjectView(RetrieveUpdateDestroyAPIView):
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
-    permission_classes = [RolePermissions] 
+    permission_classes = [RolePermissions]
+          
+    
+                    
