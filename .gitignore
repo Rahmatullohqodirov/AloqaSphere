@@ -2,3 +2,12 @@
 venv/
 __pycache__/
 *.pyc
+.vscode
+.python-version
+.venv
+pyproject.toml
+README.md
+main.py
+uv.lock
+configurations/__pycache__
+user/migrations
