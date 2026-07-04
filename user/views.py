@@ -13,6 +13,7 @@ from .models import User,Role
 from rest_framework_simplejwt.tokens import RefreshToken
 from .permissons import RolePermissions
 from rest_framework.permissions import AllowAny
+
 class SendEmailView(CreateAPIView):
     serializer_class = UserSendEmailSerializer
     permission_classes = [AllowAny]

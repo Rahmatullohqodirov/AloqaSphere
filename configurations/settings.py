@@ -1,9 +1,11 @@
 from pathlib import Path
 from decouple import config
+from dotenv import load_dotenv
 import os
 from pathlib import Path
 from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv()
 SECRET_KEY = 'django-insecure-pyum_8tvrmdrcs087kb3%(s8u0g5alh9&c!p7)^q1a*rxt(fdi'
 
 DEBUG = True
@@ -18,7 +20,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "user",
     "rest_framework",
-    "statistic"
+    "statistic",
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -53,11 +56,11 @@ WSGI_APPLICATION = 'configurations.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'java',
-        "USER": 'related',
-        "PASSWORD": 'java7834',
-        "HOST": 'localhost',
-        "PORT": '5432'
+        'NAME': os.getenv('NAME'),
+        "USER": os.getenv('USER'),
+        "PASSWORD": os.getenv('PASSWORD'),
+        "HOST": os.getenv('HOST'),
+        "PORT": os.getenv('PORT')
     }
 }
 
@@ -68,6 +71,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -99,7 +103,7 @@ STATIC_URL = 'static/'
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': 'os.path.join(BASE_DIR, "django_cache")', # Keshni papkaga fayl qilib yozadi
+        'LOCATION': 'os.path.join(BASE_DIR, "django_cache")',
     }
 }
 
@@ -108,10 +112,19 @@ SIMPLE_JWT = {
     
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'chilmuhammedovdoniyor'
-EMAIL_HOST_PASSWORD = 'semddxkukgfqvwje' 
+
+CELERY_BROKER_URL = 'redis://localhost:6373/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6373/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Tashkent'
+
+
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND'),
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = os.getenv('EMAIL_PORT')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
