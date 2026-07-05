@@ -25,13 +25,24 @@ class ReportView(APIView):
                 "detail": "error",
                 "error": serializer.errors
             }, status=400)
-        report=serializer.save(reported=request.user)
+        
+        user = request.user
+        report = serializer.save(
+            reporter=user,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            email=user.email
+        )
+        full_name = f"{user.first_name} {user.last_name}".strip()
+        if not full_name:
+            full_name = user.username
 
         notification_admin.delay(
             report_title=report.title,
-            report_description=report.description,
-            user_username=request.reporter.username
+            report_description=report.about_report,
+            user_fullname=full_name
         )
+        
         return Response({
-            "detail": "Succesfully reported"
+            "detail": "Successfully reported"
         }, status=200)

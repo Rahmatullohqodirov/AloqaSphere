@@ -24,14 +24,18 @@ class CustomUserManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
         return user
-
+    
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
+
+        if 'role' not in extra_fields and 'role_id' not in extra_fields:
+            from .models import Role
+            admin_role, created = Role.objects.get_or_create(name='admin')
+            extra_fields['role'] = admin_role
+        
         return self.create_user(email, password, **extra_fields)
-
-
 
 class User(AbstractUser):
     username= None

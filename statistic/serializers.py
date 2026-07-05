@@ -17,5 +17,5 @@ class RoleSerializer(serializers.ModelSerializer):
 class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReportModel
-        fields = ['id', 'reporter', 'title', 'about_report', 'created_at']
+        fields = '__all__'
         read_only_fields = ['reporter']
