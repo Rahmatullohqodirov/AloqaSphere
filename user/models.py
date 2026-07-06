@@ -32,7 +32,7 @@ class CustomUserManager(BaseUserManager):
 
         if 'role' not in extra_fields and 'role_id' not in extra_fields:
             from .models import Role
-            admin_role, created = Role.objects.get_or_create(name='admin')
+            admin_role = Role.objects.get_or_create(name='admin')
             extra_fields['role'] = admin_role
         
         return self.create_user(email, password, **extra_fields)
