@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "user",
+    "core",
     "rest_framework",
     "statistic",
     'drf_spectacular',
@@ -102,8 +103,11 @@ STATIC_URL = 'static/'
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': 'os.path.join(BASE_DIR, "django_cache")',
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': "django_redis.client.DefaultClient"
+        }
     }
 }
 
