@@ -5,7 +5,8 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from django_redis import get_redis_connection
 from django.contrib.auth import get_user_model
 from .serializer import ScoreUpInputSerializer, ScoreUpOutputSerializer
-import json
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 User = get_user_model()
 redis_conn = get_redis_connection('default')
@@ -13,47 +14,59 @@ redis_conn = get_redis_connection('default')
 class LeaderBoardView(APIView):
     permission_classes = [IsAdminUser, IsAuthenticated]
 
-    def get(self,request):
-        raw_data = redis_conn.zrevrange("leaderboard", 0,9, withscores=True)
-        
-        userID = [int(user_id_bytes.decode("utf-8")) for user_id_bytes, _ in raw_data]
-        users_queryset = User.objects.filter(id__in=userID).values('id', 'first_name', 'last_name')
+    def get(self, request):
+        raw_data = redis_conn.zrevrange('leaderboard', 0, 9, withscores=True)
+        userId = [int(uid.decode('utf-8')) for uid in raw_data]
+
+        users_queryset = User.objects.filter(id__in=userId).values('id', 'first_name', 'last_name')
         users_dict = {u['id']: f"{u['first_name']} {u['last_name']}" for u in users_queryset}
 
         leaderboard = []
-        for i, (user_id_bytes, score) in enumerate(raw_data):
-            u_id = int(user_id_bytes.decode('utf-8'))
-            fullname = users_dict.get(u_id, "Noma'lum foydalanuvchi")
-
+        for i, (uid_bytes ,score) in enumerate(raw_data):
+            u_id = int(uid_bytes.decode('utf-8'))
             leaderboard.append({
-                "rank": i + 1,
-                "user_id": u_id,
-                "full_name": fullname,
+                "rank": i+1,
+                "user_id":  u_id,
+                "fullname": users_dict.get(u_id, "No'malum foydalanuvchi"),
                 "score": int(score)
             })
-        return Response({
-            "success": True,
-            "leaderboard": leaderboard
-        }, status=200)
 
 class ScoreUpView(APIView):
-    serializer_class = ScoreUpInputSerializer
     permission_classes = [IsAdminUser, IsAuthenticated]
-    def post(self, request):
-        serializer = ScoreUpInputSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
-        user_id = serializer.validated_data["user_id"]
-        points_earned = serializer.validated_data["points_earned"]
-        new_score = redis_conn.zincrby("leaderboard", points_earned, str(user_id))
-        return Response({
-            "success": True,
-            "message": "Ball muvaffaqiyatli yangilandi",
-            "new_score": int(new_score)
-        }, status=200)
-        
 
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        points_earned = request.data.get('points_earned')
+
+        if not user_id or not points_earned:
+            return Response({"error": "kerakli maydonlar to`ldirilishi shart"})
+        
+        try:
+            new_score = redis_conn.zincrby('leaderboard', points_earned, str(user_id))
+            
+            user_obj = User.objects.filter(id=user_id).first()
+            full_name = f"{user_obj.first_name} {user_obj.last_name}" if user_obj else "No'malum"
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                'leaderboard_group',
+                {
+                    'type': 'leaderboard_update_message',
+                    'message': {
+                        'user_id': int(user_id),
+                        'full_name': full_name,
+                        'new_score': int(new_score)
+                    }
+                }
+            )
+            return Response({
+                "success": True, 
+                "message": "Ball yangilandi", 
+                "new_score": int(new_score)
+            })
+            
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+        
 class DashboardView(APIView):
     permission_classes = [IsAdminUser, IsAuthenticated]
     def get(self, request):

@@ -11,3 +11,4 @@ python-dotenv
 drf-spectacular
 celery
 django_redis
+channels-redis

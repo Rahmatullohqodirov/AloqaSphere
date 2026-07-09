@@ -12,6 +12,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 INSTALLED_APPS = [
+    "daphne",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -23,6 +24,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "statistic",
     'drf_spectacular',
+    "channels"
 ]
 
 MIDDLEWARE = [
@@ -53,6 +55,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'configurations.wsgi.application'
+ASGI_APPLICATION = 'configurations.asgi.application'
+
+CHANNEL_LAYERS = {
+    "deafault": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)]
+        },
+    },
+}
 
 DATABASES = {
     'default': {
