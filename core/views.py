@@ -59,8 +59,8 @@ class ScoreUpView(APIView):
                 }
             )
             return Response({
-                "success": True, 
-                "message": "Ball yangilandi", 
+                "success": True,
+                "message": "Ball yangilandi",
                 "new_score": int(new_score)
             })
             
