@@ -57,7 +57,7 @@ class ScoreUpView(APIView):
                         'new_score': int(new_score)
                     }
                 }
-            )
+            )   
             return Response({
                 "success": True,
                 "message": "Ball yangilandi",
