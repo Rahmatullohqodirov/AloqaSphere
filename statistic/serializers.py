@@ -1,6 +1,6 @@
 from user.models import User,Role
 from rest_framework import serializers
-
+from .models import ReportModel
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,3 +13,9 @@ class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = ["id","name","created_at","updated_at","number_of_staff","staff"]
+
+class ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReportModel
+        fields = '__all__'
+        read_only_fields = ['reporter']

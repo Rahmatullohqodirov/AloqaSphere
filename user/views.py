@@ -13,29 +13,22 @@ from .models import User,Role
 from rest_framework_simplejwt.tokens import RefreshToken
 from .permissons import RolePermissions
 from rest_framework.permissions import AllowAny
+from .tasks import send_verification_code
 class SendEmailView(CreateAPIView):
     serializer_class = UserSendEmailSerializer
     permission_classes = [AllowAny]
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            email = request.data.get("email").lower()
+            email = serializer.validated_data.get("email", request.data.get("email")).lower()
             code = random.randint(100000,999999)
             
-            is_sent = send_mail(
-                subject="AloqaSphere",
-                message=f"Sizning registrasiya kodingiz {code}",
-                from_email=config("EMAIL_HOST_USER"),
-                recipient_list=[email]
-            )
+            
             cache.set(f"otp_{email}",code,timeout=300)
             cache.set(f"user_data_{email}",serializer.validated_data,timeout=300)
-          
-            if is_sent == 1:
-                return Response({"msg": "kodi junatildi"},status=status.HTTP_200_OK)
-            return Response({"msg":"kodi junatilmadi"},status=status.HTTP_400_BAD_REQUEST)
+            send_verification_code.delay(email, code)
+            return Response({"msg":"kodi junatildi"},status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-    
 class UserSaveView(CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [AllowAny]
@@ -62,7 +55,7 @@ class UserSaveView(CreateAPIView):
 
         role = Role.objects.filter(name="operator").only("id").first()
         if role is None:
-            return Response({"msg": "operator roli topilmadi"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"msg": "operator roli topilmadi"}, status=status.HTTP_404_NOT_FOUND)
 
         User.objects.create_user(
             email=input_email,
@@ -107,6 +100,3 @@ class RoleObjectView(RetrieveUpdateDestroyAPIView):
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
     permission_classes = [RolePermissions]
-          
-    
-                    
